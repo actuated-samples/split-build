@@ -17,8 +17,12 @@ jobs:
     steps:
       - uses: actions/checkout@master
         with:
-          fetch-depth: 1
           repository: alexellis/release-it
+          path: "./"
+
+      - name: Check checked out contents
+        run: |
+          find .
 
       - name: Setup mirror
         uses: self-actuated/hub-mirror@master
