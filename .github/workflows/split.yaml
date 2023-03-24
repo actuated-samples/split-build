@@ -2,12 +2,14 @@ name: publish
 
 on:
   push:
-    tags:
-      - '*'
+    branches: [ master ]
 
 jobs:
 
   publish_x86:
+    concurrency: 
+      group: ${{ github.ref }}-x86
+      cancel-in-progress: true
     permissions:
       packages: write
 
