@@ -127,10 +127,6 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
         registry: ghcr.io
 
-    - name: Login again
-      run: |
-        echo ${{ secrets.GITHUB_TOKEN }} | docker login --password-stdin --username ${{ github.repository_owner }} ghcr.io
-
     - name: Check images before making manifest
       run: |
         crane manifest ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-amd64
