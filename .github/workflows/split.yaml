@@ -48,6 +48,8 @@ jobs:
         with:
           outputs: "type=registry,push=true"
           platforms: linux/amd64
+          file: ./Dockerfile
+          context: .
           build-args: |
             Version=dev
             GitCommit=${{ github.sha }}
