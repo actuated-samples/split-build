@@ -58,7 +58,7 @@ jobs:
 
   publish_aarch64:
     concurrency: 
-      group: ${{ github.ref }}-x86
+      group: ${{ github.ref }}-aarch64
       cancel-in-progress: true
     permissions:
       packages: write
@@ -104,7 +104,7 @@ jobs:
             Version=dev
             GitCommit=${{ github.sha }}
           tags: |
-            ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-x86_64
+            ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-aarch64
 
   publish_manifest:
     runs-on: ubuntu-latest
@@ -123,3 +123,15 @@ jobs:
       run: |
         crane manifest ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-x86_64
         crane manifest ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-aarch64
+    - name: Create manifest
+      run: |
+        docker manifest create crane manifest ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }} \
+          --amend ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-x86_64 \
+          --amend ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-aarch64
+
+        docker manifest annotate --arch amd64 --os linux ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }} ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-x86_64
+        docker manifest annotate --arch arm64 --os linux ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }} ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-aarch64
+
+        docker manifest inspect ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}
+
+        docker manifest push ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}
