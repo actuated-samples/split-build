@@ -1,4 +1,4 @@
-name: build
+name: split
 
 on:
   push:
@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@master
         with:
           fetch-depth: 1
-          repo: alexellis/release-it
+          repository: alexellis/release-it
 
       - name: Setup mirror
         uses: self-actuated/hub-mirror@master
@@ -48,9 +48,12 @@ jobs:
             Version=dev
             GitCommit=${{ github.sha }}
           tags: |
-            ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}
+            ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-x86_64
 
   # publish_aarch64:
+  #   concurrency: 
+  #     group: ${{ github.ref }}-aarch64
+  #     cancel-in-progress: true
   #   permissions:
   #     packages: write
 
@@ -59,7 +62,7 @@ jobs:
   #     - uses: actions/checkout@master
   #       with:
   #         fetch-depth: 1
-  #         repo: alexellis/release-it
+  #         repository: alexellis/release-it
 
   #     - name: Setup mirror
   #       uses: self-actuated/hub-mirror@master
@@ -89,4 +92,22 @@ jobs:
   #           Version=dev
   #           GitCommit=${{ github.sha }}
   #         tags: |
-  #           ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}
+  #           ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-aarch64
+
+  # publish_manifest:
+  #   runs-on: ubuntu-latest
+  #   needs: [publish_x86, publish_aarch64]
+  #   steps:
+
+  #   - name: Get Repo Owner
+  #     id: get_repo_owner
+  #     run: echo "REPO_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" > $GITHUB_ENV
+
+  #   - uses: alexellis/setup-arkade@v2
+  #   - uses: alexellis/arkade-get@master
+  #     with:
+  #       crane: latest
+  #   - name: Check images before making manifest
+  #     run: |
+  #       crane manifest ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-x86_64
+  #       crane manifest ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-aarch64
