@@ -119,6 +119,14 @@ jobs:
     - uses: alexellis/arkade-get@master
       with:
         crane: latest
+
+    - name: Login to container Registry
+      uses: docker/login-action@v2
+      with:
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        registry: ghcr.io
+
     - name: Check images before making manifest
       run: |
         crane manifest ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-x86_64
