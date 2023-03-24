@@ -56,64 +56,70 @@ jobs:
           tags: |
             ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-x86_64
 
-  # publish_aarch64:
-  #   concurrency: 
-  #     group: ${{ github.ref }}-aarch64
-  #     cancel-in-progress: true
-  #   permissions:
-  #     packages: write
+  publish_aarch64:
+    concurrency: 
+      group: ${{ github.ref }}-x86
+      cancel-in-progress: true
+    permissions:
+      packages: write
 
-  #   runs-on: actuated-aarch64
-  #   steps:
-  #     - uses: actions/checkout@master
-  #       with:
-  #         fetch-depth: 1
-  #         repository: alexellis/release-it
+    runs-on: actuated
+    steps:
+      - uses: actions/checkout@master
+        with:
+          repository: alexellis/release-it
+          path: "./"
 
-  #     - name: Setup mirror
-  #       uses: self-actuated/hub-mirror@master
+      - name: Check checked out contents
+        run: |
+          find .
 
-  #     - name: Get Repo Owner
-  #       id: get_repo_owner
-  #       run: echo "REPO_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" > $GITHUB_ENV
+      - name: Setup mirror
+        uses: self-actuated/hub-mirror@master
 
-  #     - name: Set up QEMU
-  #       uses: docker/setup-qemu-action@v2
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v2
-  #     - name: Login to container Registry
-  #       uses: docker/login-action@v2
-  #       with:
-  #         username: ${{ github.repository_owner }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
-  #         registry: ghcr.io
+      - name: Get Repo Owner
+        id: get_repo_owner
+        run: echo "REPO_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" > $GITHUB_ENV
 
-  #     - name: Release build
-  #       id: release_build
-  #       uses: docker/build-push-action@v3
-  #       with:
-  #         outputs: "type=registry,push=true"
-  #         platforms: linux/amd64
-  #         build-args: |
-  #           Version=dev
-  #           GitCommit=${{ github.sha }}
-  #         tags: |
-  #           ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-aarch64
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      - name: Login to container Registry
+        uses: docker/login-action@v2
+        with:
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
 
-  # publish_manifest:
-  #   runs-on: ubuntu-latest
-  #   needs: [publish_x86, publish_aarch64]
-  #   steps:
+      - name: Release build
+        id: release_build
+        uses: docker/build-push-action@v3
+        with:
+          outputs: "type=registry,push=true"
+          platforms: linux/arm64
+          file: ./Dockerfile
+          context: .
+          build-args: |
+            Version=dev
+            GitCommit=${{ github.sha }}
+          tags: |
+            ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-x86_64
 
-  #   - name: Get Repo Owner
-  #     id: get_repo_owner
-  #     run: echo "REPO_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" > $GITHUB_ENV
+  publish_manifest:
+    runs-on: ubuntu-latest
+    needs: [publish_x86, publish_aarch64]
+    steps:
 
-  #   - uses: alexellis/setup-arkade@v2
-  #   - uses: alexellis/arkade-get@master
-  #     with:
-  #       crane: latest
-  #   - name: Check images before making manifest
-  #     run: |
-  #       crane manifest ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-x86_64
-  #       crane manifest ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-aarch64
+    - name: Get Repo Owner
+      id: get_repo_owner
+      run: echo "REPO_OWNER=$(echo ${{ github.repository_owner }} | tr '[:upper:]' '[:lower:]')" > $GITHUB_ENV
+
+    - uses: alexellis/setup-arkade@v2
+    - uses: alexellis/arkade-get@master
+      with:
+        crane: latest
+    - name: Check images before making manifest
+      run: |
+        crane manifest ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-x86_64
+        crane manifest ghcr.io/${{ env.REPO_OWNER }}/release-it:${{ github.sha }}-aarch64
