@@ -15,3 +15,4 @@ See also:
 
 * [Bring Your Own Metal Case Study with GitHub Actions](https://actuated.dev/blog/case-study-bring-your-own-bare-metal-to-actions)
 * [How to make GitHub Actions 22x faster with bare-metal Arm](https://actuated.dev/blog/native-arm64-for-github-actions)
+
